@@ -24,16 +24,26 @@ func DataReady() *schema.Resource {
 
 func DataGetReady(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
-	response_ready, err := influx.Ready(context.Background())
+	// response_ready, err := influx.Ready(context.Background())
+	// if err != nil {
+	// 	return fmt.Errorf("server is not ready: %v", err)
+	// }
+	// var ready bool = false
+	// // if response_ready.Status == domain.ReadyStatusReady {
+	// var ready_temp domain.ReadyStatus = "ready"
+	// if response_ready.Status == *ready_temp {
+	// 	ready = true
+	// }
+
+	responseReady, err := influx.Ready(context.Background())
 	if err != nil {
 		return fmt.Errorf("server is not ready: %v", err)
 	}
-	var ready bool = false
-	// if response_ready.Status == domain.ReadyStatusReady {
-	var ready_temp *domain.ReadyStatus = "ready"
-	if response_ready.Status == ready_temp {
+	var ready bool
+	if *responseReady.Status == domain.ReadyStatusReady {
 		ready = true
 	}
+
 	if ready {
 		log.Printf("Server is ready !")
 	}
