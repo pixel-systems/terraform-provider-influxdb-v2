@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+  // "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
@@ -20,10 +21,10 @@ func ResourceTask() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+			// "description": {
+			// 	Type:     schema.TypeString,
+			// 	Optional: true,
+			// },
 			"flux": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -60,7 +61,7 @@ func resourceTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
 
 	// https://github.com/influxdata/influxdb-client-go/blob/master/domain/types.gen.go
-	desc := d.Get("description").(string)
+	// desc := d.Get("description").(string)
 	every := d.Get("every").(string)
 	offset := d.Get("offset").(string)
 	// status := domain.TaskStatusTypeInactive
@@ -74,7 +75,7 @@ func resourceTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	newTask := &domain.Task{
 		Name: d.Get("name").(string),
 		// Description: d.Get("description").(string),
-		Description: &desc,
+		// Description: &desc,
 		Flux:        d.Get("flux").(string),
 		OrgID:       d.Get("org_id").(string),
 		// Every:       d.Get("every").(*string),
@@ -94,20 +95,20 @@ func resourceTaskCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceTaskRead(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
-	result, err := influx.TasksAPI().GetTaskByID(context.Background(), d.Get("Id").(string))
+	result, err := influx.TasksAPI().GetTaskByID(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error getting task: %v", err)
 	}
 
 	d.Set("name", result.Name)
-	d.Set("description", result.Description)
+	// d.Set("description", result.Description)
 	d.Set("org_id", result.OrgID)
 	d.Set("flux", result.Flux)
 	d.Set("every", result.Every)
 	d.Set("offset", result.Offset)
 	d.Set("status", result.Status)
 	d.Set("created_at", result.CreatedAt.String())
-	d.Set("updated_at", result.UpdatedAt.String())
+	// d.Set("updated_at", result.UpdatedAt.String())
 
 	return nil
 }
@@ -116,12 +117,12 @@ func resourceTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
 
 	updateTask := &domain.Task{
-		Id:          d.Get("Id").(string),
+		Id:          d.Id(),
 		Name:        d.Get("name").(string),
-		Description: d.Get("description").(*string),
+		// Description: d.Get("description").(*string),
 		Flux:        d.Get("flux").(string),
 		OrgID:       d.Get("org_id").(string),
-		Every:       d.Get("every").(*string),
+		// Every:       d.Get("every").(*string),
 		Offset:      d.Get("offset").(*string),
 		Status:      d.Get("status").(*domain.TaskStatusType),
 	}
@@ -136,7 +137,7 @@ func resourceTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceTaskDelete(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
-	err := influx.TasksAPI().DeleteTaskWithID(context.Background(), d.Get("Id").(string))
+	err := influx.TasksAPI().DeleteTaskWithID(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf("error deleting task: %v", err)
 	}
