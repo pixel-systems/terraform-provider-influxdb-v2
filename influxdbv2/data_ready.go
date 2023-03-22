@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-  "github.com/influxdata/influxdb-client-go/v2/domain"
+	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
 func DataReady() *schema.Resource {
@@ -28,8 +28,10 @@ func DataGetReady(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("server is not ready: %v", err)
 	}
-  ready := false
-  if response_ready.Status == *domain.ReadyStatusReady {
+	var ready bool = false
+	// if response_ready.Status == domain.ReadyStatusReady {
+	var ready_temp *domain.ReadyStatus = "ready"
+	if response_ready.Status == ready_temp {
 		ready = true
 	}
 	if ready {
