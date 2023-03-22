@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-  // "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
@@ -17,14 +16,6 @@ func ResourceTask() *schema.Resource {
 		Update: resourceTaskUpdate,
 		Delete: resourceTaskDelete,
 		Schema: map[string]*schema.Schema{
-			// "name": {
-			// 	Type:     schema.TypeString,
-			// 	Required: true,
-			// },
-			// "description": {
-			// 	Type:     schema.TypeString,
-			// 	Optional: true,
-			// },
 			"flux": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -33,14 +24,6 @@ func ResourceTask() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// "every": {
-			// 	Type:     schema.TypeString,
-			// 	Required: true,
-			// },
-			// "offset": {
-			// 	Type:     schema.TypeString,
-			// 	Required: true,
-			// },
 			"status": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -61,37 +44,18 @@ func resourceTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
 
 	// https://github.com/influxdata/influxdb-client-go/blob/master/domain/types.gen.go
-	// desc := d.Get("description").(string)
-  flux := d.Get("flux").(string)
-  orgId := d.Get("org_id").(string)
-	// every := d.Get("every").(string)
-	// offset := d.Get("offset").(string)
-	// status := domain.TaskStatusTypeInactive
-	// var status domain.TaskStatusType
-	// if d.Get("status").(string) == "active" {
-	// 	status = domain.TaskStatusTypeActive
-	// } else {
-	// 	status = domain.TaskStatusTypeInactive
-	// }
-
-	// newTask := &domain.Task{
-	// 	Name: d.Get("name").(string),
-	// 	// Description: d.Get("description").(string),
-	// 	// Description: &desc,
-	// 	Flux:        d.Get("flux").(string),
-	// 	OrgID:       d.Get("org_id").(string),
-	// 	// Every:       d.Get("every").(*string),
-	// 	Every: &every,
-	// 	// Offset:      d.Get("offset").(*string),
-	// 	Offset: &offset,
-	// 	// Status: d.Get("status").(*domain.TaskStatusType),
-	// 	Status: &status,
-	// }
+	flux := d.Get("flux").(string)
+	orgId := d.Get("org_id").(string)
 	result, err := influx.TasksAPI().CreateTaskByFlux(context.Background(), flux, orgId)
 	if err != nil {
 		return fmt.Errorf("error creating task: %v", err)
 	}
 	d.SetId(result.Id)
+
+	// START: doing update after creation because status was not set during creation
+	resourceTaskUpdate(d, meta)
+	// END: doing update after creation because status was not set during creation
+
 	return resourceTaskRead(d, meta)
 }
 
@@ -103,14 +67,13 @@ func resourceTaskRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", result.Name)
-	// d.Set("description", result.Description)
 	d.Set("org_id", result.OrgID)
 	d.Set("flux", result.Flux)
 	d.Set("every", result.Every)
 	d.Set("offset", result.Offset)
 	d.Set("status", result.Status)
 	d.Set("created_at", result.CreatedAt.String())
-	// d.Set("updated_at", result.UpdatedAt.String())
+	d.Set("updated_at", result.UpdatedAt.String())
 
 	return nil
 }
@@ -118,15 +81,18 @@ func resourceTaskRead(d *schema.ResourceData, meta interface{}) error {
 func resourceTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
 
+	var status domain.TaskStatusType
+	if d.Get("status").(string) == "active" {
+		status = domain.TaskStatusTypeActive
+	} else {
+		status = domain.TaskStatusTypeInactive
+	}
+
 	updateTask := &domain.Task{
-		Id:          d.Id(),
-		Name:        d.Get("name").(string),
-		// Description: d.Get("description").(*string),
-		Flux:        d.Get("flux").(string),
-		OrgID:       d.Get("org_id").(string),
-		// Every:       d.Get("every").(*string),
-		Offset:      d.Get("offset").(*string),
-		Status:      d.Get("status").(*domain.TaskStatusType),
+		Id:     d.Id(),
+		Flux:   d.Get("flux").(string),
+		OrgID:  d.Get("org_id").(string),
+		Status: &status,
 	}
 	_, err := influx.TasksAPI().UpdateTask(context.Background(), updateTask)
 
