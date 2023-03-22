@@ -17,10 +17,10 @@ func ResourceTask() *schema.Resource {
 		Update: resourceTaskUpdate,
 		Delete: resourceTaskDelete,
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			// "name": {
+			// 	Type:     schema.TypeString,
+			// 	Required: true,
+			// },
 			// "description": {
 			// 	Type:     schema.TypeString,
 			// 	Optional: true,
@@ -33,14 +33,14 @@ func ResourceTask() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"every": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"offset": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			// "every": {
+			// 	Type:     schema.TypeString,
+			// 	Required: true,
+			// },
+			// "offset": {
+			// 	Type:     schema.TypeString,
+			// 	Required: true,
+			// },
 			"status": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -62,30 +62,32 @@ func resourceTaskCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// https://github.com/influxdata/influxdb-client-go/blob/master/domain/types.gen.go
 	// desc := d.Get("description").(string)
-	every := d.Get("every").(string)
-	offset := d.Get("offset").(string)
+  flux := d.Get("flux").(string)
+  orgId := d.Get("org_id").(string)
+	// every := d.Get("every").(string)
+	// offset := d.Get("offset").(string)
 	// status := domain.TaskStatusTypeInactive
-	var status domain.TaskStatusType
-	if d.Get("status").(string) == "active" {
-		status = domain.TaskStatusTypeActive
-	} else {
-		status = domain.TaskStatusTypeInactive
-	}
+	// var status domain.TaskStatusType
+	// if d.Get("status").(string) == "active" {
+	// 	status = domain.TaskStatusTypeActive
+	// } else {
+	// 	status = domain.TaskStatusTypeInactive
+	// }
 
-	newTask := &domain.Task{
-		Name: d.Get("name").(string),
-		// Description: d.Get("description").(string),
-		// Description: &desc,
-		Flux:        d.Get("flux").(string),
-		OrgID:       d.Get("org_id").(string),
-		// Every:       d.Get("every").(*string),
-		Every: &every,
-		// Offset:      d.Get("offset").(*string),
-		Offset: &offset,
-		// Status: d.Get("status").(*domain.TaskStatusType),
-		Status: &status,
-	}
-	result, err := influx.TasksAPI().CreateTask(context.Background(), newTask)
+	// newTask := &domain.Task{
+	// 	Name: d.Get("name").(string),
+	// 	// Description: d.Get("description").(string),
+	// 	// Description: &desc,
+	// 	Flux:        d.Get("flux").(string),
+	// 	OrgID:       d.Get("org_id").(string),
+	// 	// Every:       d.Get("every").(*string),
+	// 	Every: &every,
+	// 	// Offset:      d.Get("offset").(*string),
+	// 	Offset: &offset,
+	// 	// Status: d.Get("status").(*domain.TaskStatusType),
+	// 	Status: &status,
+	// }
+	result, err := influx.TasksAPI().CreateTaskByFlux(context.Background(), flux, orgId)
 	if err != nil {
 		return fmt.Errorf("error creating task: %v", err)
 	}
