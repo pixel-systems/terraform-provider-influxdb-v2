@@ -9,9 +9,9 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 )
 
-func ResourceTask() *schema.Resource {
+func ResourceTaskByFlux() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceTaskCreate,
+		Create: resourceTaskByFluxCreate,
 		Read:   resourceTaskRead,
 		Update: resourceTaskUpdate,
 		Delete: resourceTaskDelete,
@@ -40,7 +40,7 @@ func ResourceTask() *schema.Resource {
 	}
 }
 
-func resourceTaskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceTaskByFluxCreate(d *schema.ResourceData, meta interface{}) error {
 	influx := meta.(influxdb2.Client)
 
 	// https://github.com/influxdata/influxdb-client-go/blob/master/domain/types.gen.go

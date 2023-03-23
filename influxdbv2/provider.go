@@ -18,7 +18,7 @@ func Provider() *schema.Provider {
 			"influxdb-v2_bucket":        ResourceBucket(),
 			"influxdb-v2_authorization": ResourceAuthorization(),
 			"influxdb-v2_organization":  ResourceOrganization(),
-			"influxdb-v2_task":          ResourceTask(),
+			"influxdb-v2_taskByFlux":    ResourceTaskByFlux(),
 		},
 		Schema: map[string]*schema.Schema{
 			"url": {
